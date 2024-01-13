@@ -8,8 +8,17 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import IconButton from '@mui/material/IconButton'; // Import IconButton
+import EditIcon from '@mui/icons-material/Edit';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import { useTheme } from '@mui/material/styles';
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import ImagePopup from './ImagePopup';
+
 const genAI = new GoogleGenerativeAI(process.env.REACT_APP_AI_KEY);
 
 const CameraComponent = () => {
@@ -19,6 +28,9 @@ const CameraComponent = () => {
   const [loading, setLoading] = useState(false);
   const [updatingCamera, setUpdatingCamera] = useState(false);
   const [responseText, setResponseText] = useState('');
+  const [selectedPrompt, setSelectedPrompt] = useState("default");
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [showCustomPromptDialog, setShowCustomPromptDialog] = useState(false);
   const theme = useTheme();
   const webcamRef = useRef(null);
 
@@ -64,6 +76,24 @@ const CameraComponent = () => {
     }
   }, [selectedCamera]);
 
+  const handlePromptChange = (event) => {
+    const selectedPromptValue = event.target.value;
+    setSelectedPrompt(selectedPromptValue);
+
+    // If custom prompt is selected, show the input dialog
+    if (selectedPromptValue === "custom") {
+      setShowCustomPromptDialog(true);
+    }
+  };
+
+  const handleCustomPromptChange = (event) => {
+    setCustomPrompt(event.target.value);
+  };
+
+  const handleConfirmCustomPrompt = () => {
+    setShowCustomPromptDialog(false);
+  };
+
   const captureAndGenerate = async () => {
     setLoading(true);
 
@@ -75,8 +105,9 @@ const CameraComponent = () => {
 
     // Use the gemini-pro-vision model
     const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+
     // Set up the prompt and image parts
-    const prompt = "What do you in the Image ? if you see a girl compliment her looks and smile , if you see a product then specify the brand if you are sure."
+    let prompt = selectedPrompt === "default" ? "Default Prompt" : customPrompt;
     const imageParts = [
       {
         inlineData: {
@@ -84,12 +115,6 @@ const CameraComponent = () => {
           mimeType: "image/jpeg",
         },
       },
-    //   {
-    //     inlineData: {
-    //       data: process.env.REACT_APP_IAMGE, // Importing the image directly
-    //       mimeType: "image/png",
-    //     },
-    //   }
     ];
 
     try {
@@ -99,7 +124,7 @@ const CameraComponent = () => {
       let text = '';
       for await (const chunk of result.stream) {
         const chunkText = chunk.text();
-        console.log(chunkText);
+        // console.log(chunkText);
         text += chunkText;
         setResponseText(text);
       }
@@ -115,14 +140,58 @@ const CameraComponent = () => {
     setSelectedCamera(selectedDeviceId);
   };
 
+  const [showImagePopup, setShowImagePopup] = useState(false);
+
+  const handleImagePopupOpen = () => {
+    setShowImagePopup(true);
+  };
+
+  const handleImagePopupClose = () => {
+    setShowImagePopup(false);
+  };
+
   return (
     <Box className="card-container" mt={2}>
       <Card className="card" elevation={3} style={{ backgroundColor: theme.palette.background.default, borderRadius: 8 }}>
         <CardContent>
-          {cameraList.length > 0 && (
-            <>
-              <Box mt={2}>
-                <Typography variant="body2">Select Camera:</Typography>
+          <div className='flexrow'>
+            <div>
+
+              {selectedPrompt === "custom" && (
+                <Dialog open={showCustomPromptDialog} onClose={() => setShowCustomPromptDialog(false)}>
+                  <DialogTitle>Enter Custom Prompt</DialogTitle>
+                  <DialogContent>
+                    <TextField
+                      autoFocus
+                      margin="dense"
+                      id="customPrompt"
+                      label="Custom Prompt"
+                      type="text"
+                      fullWidth
+                      value={customPrompt}
+                      onChange={handleCustomPromptChange}
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setShowCustomPromptDialog(false)} color="primary">
+                      Cancel
+                    </Button>
+                    <Button onClick={handleConfirmCustomPrompt} color="primary">
+                      Confirm
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+              )}
+              <Box className="webcam-container" mt={2} elevation ={3}>
+                <Webcam
+                  key={selectedCamera} // Add key to trigger re-render when the camera changes
+                  audio={false}
+                  screenshotFormat="image/jpeg"
+                  videoSource={selectedCamera}
+                  ref={webcamRef}
+                />
+              </Box>
+              <Box m={2}>
                 <Select value={selectedCamera} onChange={handleCameraChange}>
                   {cameraList.map(camera => (
                     <MenuItem key={camera.deviceId} value={camera.deviceId}>
@@ -131,17 +200,15 @@ const CameraComponent = () => {
                   ))}
                 </Select>
               </Box>
-              <Box className="webcam-container" mt={2}>
-                <Webcam
-                  key={selectedCamera} // Add key to trigger re-render when the camera changes
-                  audio={false}
-                  screenshotFormat="image/jpeg"
-                  videoSource={selectedCamera}
-                  ref={webcamRef}
-                //   videoConstraints={{ width: 1280, height: 720 }} 
-                />
+              <Box m={2}>
+                <Select value={selectedPrompt} onChange={handlePromptChange}>
+                  <MenuItem value="default">Default Prompt</MenuItem>
+                  <MenuItem value="custom">Custom Prompt</MenuItem>
+                </Select>
               </Box>
-              <Box mt={2}>
+            </div>
+            <div className='response'>
+              <Box m={2} >
                 <Button
                   variant="contained"
                   color="primary"
@@ -152,26 +219,42 @@ const CameraComponent = () => {
                   {updatingCamera ? 'Updating Camera...' : 'Capture Photo'}
                 </Button>
               </Box>
-            </>
-          )}
-          {image && (
-            <Box mt={2}>
-              <Card className="card" elevation={3} style={{ backgroundColor: theme.palette.accent.main }}>
-                <CardContent>
-                  {loading ? (
-                    <CircularProgress className="progress" color="secondary" />
-                  ) : (
-                    <>
-                      <Typography variant="h6" className="generated-text">
-                        Response:
+              {image && (
+                <Box m = {2}>
+                  <Card className="card" elevation={3} style={{ backgroundColor: theme.palette.accent.main }}>
+                    <CardContent>
+                    <Typography variant="h6" mb={2}>
+                        {selectedPrompt === "custom" ? (
+                          <>
+                            {customPrompt}
+                            <IconButton style={{marginBottom:8}} onClick={() => setShowCustomPromptDialog(true)} color="primary">
+                              <EditIcon />
+                            </IconButton>
+                          </>
+                        ) : (
+                          "Default Prompt"
+                        )}
                       </Typography>
-                      <Typography variant="body1" className="response-text" color="secondary">{responseText}</Typography>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </Box>
-          )}
+                      {loading ? (
+                        <CircularProgress className="progress" color="secondary" />
+                      ) : (
+                        <>
+                          <Typography variant="h7" className="generated-text">
+                            Response:
+                          </Typography>
+                          <Typography variant="body1" className="response-text" color="secondary" mt={1} mb ={2} border={1}  style={{ padding: '10px' }} borderRadius={1.5}>{responseText} </Typography>
+                            <Button variant="contained" color="primary" onClick={handleImagePopupOpen}>
+                            Iamges
+                          </Button>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Box>
+              )}
+            </div>
+          </div>
+              <ImagePopup open={showImagePopup} handleClose={handleImagePopupClose} image={image} response ={responseText}/>
         </CardContent>
       </Card>
     </Box>

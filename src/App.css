@@ -12,13 +12,18 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
   margin-bottom: 20px;
+}
+
+.flexrow{
+  display: flex;
+  flex-direction: row;
+  align-items: top;
 }
 
 .webcam-container {
@@ -34,13 +39,16 @@ h1 {
 
 .card-container {
   margin-top: 16px;
-  max-width: 600px;
+  max-width: 200vh;
+  width: 140vh;
 }
+
 
 .card {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 
 /* Media Query for Mobile Devices */
 @media (max-width: 768px) {
@@ -48,6 +56,11 @@ h1 {
   .card-container {
     width: 100%; /* Make the container full width on smaller screens */
     max-width: none; /* Remove max-width on smaller screens */
+  }
+  .flexrow{
+    display: block;
+    flex-direction: column;
+    align-items: center;
   }
 }
 
