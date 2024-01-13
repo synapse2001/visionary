@@ -14,7 +14,7 @@ const theme = useTheme();
     <Dialog open={open} onClose={handleClose}>
         <div style={{backgroundColor:theme.palette.accent.main}}>
 
-      <DialogTitle> sent to visionary</DialogTitle>
+      <DialogTitle> visionary response</DialogTitle>
       <DialogContent >
         <DialogContentText>
           <img src={image} alt="Generated" style={{ maxWidth: '100%', maxHeight: '100%',borderRadius:8 }} />
