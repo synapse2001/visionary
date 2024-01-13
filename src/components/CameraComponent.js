@@ -242,7 +242,7 @@ const CameraComponent = () => {
                           <Typography variant="h7" className="generated-text">
                             Response:
                           </Typography>
-                          <Typography variant="body1" className="response-text" color="secondary" mt={1} mb ={2} border={1}  style={{ padding: '10px' }} borderRadius={1.5}>{responseText} </Typography>
+                          <Typography variant="body1" className="response-text" color="secondary" mt={1} mb ={2} border={1}  style={{ padding: '10px', whiteSpace: 'pre-wrap'}} borderRadius={1.5} >{responseText} </Typography>
                             <Button variant="contained" color="primary" onClick={handleImagePopupOpen}>
                             Iamges
                           </Button>

@@ -20,7 +20,7 @@ const theme = useTheme();
           <img src={image} alt="Generated" style={{ maxWidth: '100%', maxHeight: '100%',borderRadius:8 }} />
         </DialogContentText>
       </DialogContent>
-      <Typography variant="body1" className="response-text" color="secondary" m ={4}>{response} </Typography>
+      <Typography variant="body1" className="response-text" color="secondary" style={{whiteSpace: 'pre-wrap'}} mt ={3} ml = {3} mr = {3}>{response} </Typography>
       <DialogActions>
         <Button onClick={handleClose} color="primary">
           Close
