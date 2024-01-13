@@ -1,1 +1,1 @@
-# A AI application based on google's Gemini Vision Pro engine
+# A Vision AI application based on google's Gemini Vision Pro engine
