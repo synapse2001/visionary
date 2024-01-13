@@ -76,7 +76,6 @@ const CameraComponent = () => {
     // Use the gemini-pro-vision model
     const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
     // Set up the prompt and image parts
-    // const prompt = "What do you see in the first Picture? Only tell about first picture, the second picture is one for matching.The second image corresponds to a girl named Muskan, She is a future Doctor and has a beautiful smile.Match the person in the first image and second image if they are same , then give the descripriton of second image as your response.";
     const prompt = "What do you in the Image ? if you see a girl compliment her looks and smile , if you see a product then specify the brand if you are sure."
     const imageParts = [
       {
