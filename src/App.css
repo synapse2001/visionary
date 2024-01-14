@@ -35,6 +35,9 @@ h1 {
   max-width: 600px;
   border-radius: 8px;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .capture-button {

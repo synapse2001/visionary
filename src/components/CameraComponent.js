@@ -240,6 +240,11 @@ const CameraComponent = () => {
 
   const startListening = () => SpeechRecognition.startListening({ continuous: true, language: 'en-IN' });
 
+  const webcamContainerStyle = {
+    mt: 2,
+    boxShadow: listening ? '0 0 10px 2px rgba(255, 0, 0, 0.5)' : 'none', 
+  };
+
   return (
     <Box className="card-container" mt={2}>
       <Card className="card" elevation={3} style={{ backgroundColor: theme.palette.background.default, borderRadius: 8 }}>
@@ -272,7 +277,7 @@ const CameraComponent = () => {
                   </DialogActions>
                 </Dialog>
               )}
-              <Box className="webcam-container" mt={2} elevation={3}>
+              <Box className="webcam-container" mt={2} style={webcamContainerStyle} >
                 <Webcam
                   key={selectedCamera} // Add key to trigger re-render when the camera changes
                   audio={false}
