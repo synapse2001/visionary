@@ -127,6 +127,7 @@ const CameraComponent = () => {
 
       let text = '';
       for await (const chunk of result.stream) {
+        setLoading(false);
         const chunkText = chunk.text();
         // console.log(chunkText);
         text += chunkText;
@@ -161,8 +162,8 @@ const CameraComponent = () => {
 
       let text = '';
       for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
         setLoading(false);
+        const chunkText = chunk.text();
         text += chunkText;
         setResponseText(text);
       }
@@ -317,7 +318,7 @@ const CameraComponent = () => {
                     disabled={loading || updatingCamera}
                     className="capture-button"
                   >
-                    {updatingCamera ? 'Updating Camera...' : 'Capture Photo'}
+                    {updatingCamera ? 'Updating Camera...' : 'Capture Image'}
                   </Button>
                 )}
               </Box>
@@ -346,7 +347,7 @@ const CameraComponent = () => {
                           </Typography>
                           <Typography variant="body1" className="response-text" color="secondary" mt={1} mb={2} border={1} style={{ padding: '10px', whiteSpace: 'pre-wrap' }} borderRadius={1.5} >{(responseText)} </Typography>
                           <Button variant="contained" color="primary" onClick={handleImagePopupOpen}>
-                            Expand 
+                            Captures 
                           </Button>
                         </>
                       ) : (
