@@ -24,6 +24,10 @@ h1 {
   display: flex;
   flex-direction: row;
   align-items: top;
+  /* width: fit-content; */
+}
+.response{
+  width: 100%;
 }
 
 .webcam-container {
@@ -46,9 +50,9 @@ h1 {
 
 .card {
   border-radius: 8px;
+  /* width: 100vh; */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 
 /* Media Query for Mobile Devices */
 @media (max-width: 768px) {
