@@ -33,7 +33,7 @@ const CameraComponent = () => {
 
   useEffect(() => {
     const savedPrompt = JSON.parse(localStorage.getItem('lastusedprompt')) || {};
-    console.log("HII",savedPrompt);
+    // console.log("HII",savedPrompt);
     setSelectedPrompt(savedPrompt.lastprompt || 'assistant');
     localStorage.setItem('lastusedprompt', JSON.stringify({ lastprompt:  savedPrompt.lastprompt || 'assistant'}))
   },[])
@@ -51,7 +51,7 @@ const CameraComponent = () => {
   const defaultPrompt = "What do you see in this image?, If you see a girl compliment her on looks and smile, If you see a product, specify the brand only if you are sure.";
   const loadSettings = () => {
     const savedSettings = JSON.parse(localStorage.getItem('settings')) || {};
-    console.log(savedSettings);
+    // console.log(savedSettings.temperature);
     return {
       temperature: savedSettings.temperature || 0.1,
       selectedModel: savedSettings.selectedModel || 'gemini-pro-vision',
@@ -84,18 +84,48 @@ const CameraComponent = () => {
       ...newSettings,
     }));
     const updatedSettings = { ...prevSet, ...newSettings };
-    console.log(JSON.stringify(updatedSettings))
+    // console.log(JSON.stringify(updatedSettings))
     localStorage.setItem('settings', JSON.stringify(updatedSettings));
     setVoice(newSettings.voice)
+    if(newSettings.voice && newSettings.voice.voiceURI){
+    localStorage.setItem('lastusedvoice', JSON.stringify({ voiceURI: newSettings.voice.voiceURI }));
+    }
   };
 
-
+  
+  
+  
 
   const [generationConfig, setgenerationConfig] = useState({ candidateCount: 1, temperature: temperature })
   const model = genAI.getGenerativeModel({ model: "gemini-pro-vision", generationConfig });
   const synth = window.speechSynthesis;
 
   const startListening = () => SpeechRecognition.startListening({ continuous: true, language: 'en-IN' });
+  useEffect(() => {
+    const voices = synth.getVoices();
+    if (settings.voice == null || (typeof settings.voice === 'object' && Object.keys(settings.voice).length === 0)) {
+      // console.log(settings.voice, typeof settings.voice);
+  
+      if (!localStorage.getItem('lastusedvoice')) {
+        // console.log(voices);
+        const defaultVoice = voices.find(voice => voice.default) || voices[0];
+        setVoice(defaultVoice);
+        // console.log("whynotworking",defaultVoice.voiceURI);
+        localStorage.setItem('lastusedvoice', JSON.stringify({ voiceURI: defaultVoice.voiceURI }));
+        handleSettingUpdate({ voice: defaultVoice });
+      } else {
+        // console.log("i am in", JSON.parse(localStorage.getItem('lastusedvoice')));
+        const lastUsedVoiceURI = JSON.parse(localStorage.getItem('lastusedvoice')).voiceURI;
+        const matchingVoice = voices.find(voice => voice.voiceURI === lastUsedVoiceURI);
+        setVoice(matchingVoice);
+        handleSettingUpdate({ voice: matchingVoice });
+      }
+    } else {
+      // console.log("Yeaaahhh", settings);
+      setVoice(settings.voice);
+    }
+  }, []);
+  
 
   const handleRestartSession = () => {
     if (userecurringSession && !isSessionBusy) {
@@ -110,7 +140,7 @@ const CameraComponent = () => {
       setUtterance(u);
       if (voice === null) {
         const voices = synth.getVoices();
-        console.log(voices);
+        // console.log(voices);
         setVoice(voices[2]);
       }
       return () => {
@@ -121,11 +151,11 @@ const CameraComponent = () => {
 
   useEffect(() => {
     if (usetextTospeech && utterance && responseText && !isSessionBusy) {
-      console.log(voice);
+      // console.log(voice);
       utterance.voice = voice;
       utterance.rate = rate;
       utterance.onend = () => handleRestartSession();
-      console.log(utterance);
+      // console.log(utterance);
       synth.speak(utterance);
     }
   }, [utterance]);
@@ -185,7 +215,7 @@ const CameraComponent = () => {
     if (selectedPromptValue === "custom") {
       setShowCustomPromptDialog(true);
     }
-    console.log(selectedPromptValue)
+    // console.log(selectedPromptValue)
     localStorage.setItem('lastusedprompt', JSON.stringify({ lastprompt: selectedPromptValue }))
   };
 
@@ -265,7 +295,7 @@ const CameraComponent = () => {
         text += chunkText;
         setResponseText(text);
       }
-      console.log(text)
+      // console.log(text)
     } catch (error) {
       console.error('Error sending images to Gemini model:', error);
     } finally {

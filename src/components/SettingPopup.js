@@ -43,7 +43,7 @@ const SettingPopup = ({
     const updateVoices = () => {
       const temp = synth.getVoices(); 
       setVoiceList(temp);
-      handleSettingUpdate({ voice: temp[2]}) // You might want to set the default voice based on your requirements
+      // handleSettingUpdate({ voice: temp[2]}) // You might want to set the default voice based on your requirements
     };
     updateVoices();
   
@@ -134,7 +134,7 @@ const SettingPopup = ({
           <Typography gutterBottom>Text-to-Speech</Typography>
           <Switch
             checked={usetextTospeech}
-            onChange={() => handleSettingUpdate({ usetextTospeech: !usetextTospeech })}
+            onChange={() => handleSettingUpdate({ usetextTospeech: !usetextTospeech, userecurringSession: userecurringSession ? false : userecurringSession})}
           />
         </Box>
         <Box m={2}>
@@ -142,7 +142,7 @@ const SettingPopup = ({
           <Switch
             checked={userecurringSession}
             disabled={selectedPrompt !== "assistant"}
-            onChange={() => handleSettingUpdate({ userecurringSession: !userecurringSession })}
+            onChange={() => handleSettingUpdate({ userecurringSession: !userecurringSession, usetextTospeech: usetextTospeech ? usetextTospeech : true})}
           />
         </Box>
         <Box m={2}>
@@ -152,7 +152,7 @@ const SettingPopup = ({
             min={0.5}
             max={2}
             step={0.1}
-            disabled={selectedPrompt !== "assistant"}
+            disabled={!usetextTospeech}
             onChange={(e, newValue) => handleSettingUpdate({ rate: newValue })}
           />
         </Box>
@@ -165,7 +165,7 @@ const SettingPopup = ({
                             whiteSpace: 'nowrap',
                             textOverflow: 'ellipsis',
                           }}
-                          disabled={selectedPrompt !== "assistant"}
+                          disabled={!usetextTospeech}
             >
                 {voiceList.map((v) => (
                 <MenuItem key={v.name} value={v.name}>
