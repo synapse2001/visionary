@@ -29,7 +29,15 @@ const CameraComponent = () => {
   const [loading, setLoading] = useState(false);
   const [updatingCamera, setUpdatingCamera] = useState(false);
   const [responseText, setResponseText] = useState('');
-  const [selectedPrompt, setSelectedPrompt] = useState(JSON.parse((localStorage.getItem('lastusedprompt')) && JSON.parse(localStorage.getItem('lastusedprompt')).prompt) ? JSON.parse(localStorage.getItem('lastusedprompt')).prompt: "assistant");
+  const [selectedPrompt, setSelectedPrompt] = useState("assistant");
+
+  useEffect(() => {
+    const savedPrompt = JSON.parse(localStorage.getItem('lastusedprompt')) || {};
+    console.log("HII",savedPrompt);
+    setSelectedPrompt(savedPrompt.lastprompt || 'assistant');
+    localStorage.setItem('lastusedprompt', JSON.stringify({ lastprompt:  savedPrompt.lastprompt || 'assistant'}))
+  },[])
+
   const [customPrompt, setCustomPrompt] = useState("");
   const [showCustomPromptDialog, setShowCustomPromptDialog] = useState(false);
   const theme = useTheme();
@@ -177,7 +185,8 @@ const CameraComponent = () => {
     if (selectedPromptValue === "custom") {
       setShowCustomPromptDialog(true);
     }
-    localStorage.setItem('lastusedprompt', JSON.stringify({ prompt: selectedPromptValue }))
+    console.log(selectedPromptValue)
+    localStorage.setItem('lastusedprompt', JSON.stringify({ lastprompt: selectedPromptValue }))
   };
 
   const handleCustomPromptChange = (event) => {
