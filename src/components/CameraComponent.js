@@ -29,7 +29,7 @@ const CameraComponent = () => {
   const [loading, setLoading] = useState(false);
   const [updatingCamera, setUpdatingCamera] = useState(false);
   const [responseText, setResponseText] = useState('');
-  const [selectedPrompt, setSelectedPrompt] = useState(JSON.parse(localStorage.getItem('lastusedprompt')).prompt ? JSON.parse(localStorage.getItem('lastusedprompt')).prompt: null);
+  const [selectedPrompt, setSelectedPrompt] = useState(JSON.parse((localStorage.getItem('lastusedprompt')) && JSON.parse(localStorage.getItem('lastusedprompt')).prompt) ? JSON.parse(localStorage.getItem('lastusedprompt')).prompt: "assistant");
   const [customPrompt, setCustomPrompt] = useState("");
   const [showCustomPromptDialog, setShowCustomPromptDialog] = useState(false);
   const theme = useTheme();
