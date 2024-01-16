@@ -48,7 +48,7 @@ const SettingPopup = ({
     // updateVoices();
   
     // synth.onvoiceschanged = updateVoices;
-  }, []);
+  }, [open]);
   
   const handleResetToDefault = () => {
     // Define your default settings or retrieve them from a source

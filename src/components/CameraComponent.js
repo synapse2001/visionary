@@ -87,7 +87,7 @@ const CameraComponent = () => {
     const updatedSettings = { ...prevSet, ...newSettings };
     // console.log(JSON.stringify(updatedSettings))
     localStorage.setItem('settings', JSON.stringify(updatedSettings));
-    setVoice(newSettings.voice)
+    setVoice(newSettings.voice);
     if(newSettings.voice && newSettings.voice.voiceURI){
     localStorage.setItem('lastusedvoice', JSON.stringify({ voiceURI: newSettings.voice.voiceURI }));
     }
@@ -112,8 +112,10 @@ const CameraComponent = () => {
         const defaultVoice = voices.find(voice => voice.default) || voices[0];
         setVoice(defaultVoice);
         // console.log("whynotworking",defaultVoice.voiceURI);
-        localStorage.setItem('lastusedvoice', JSON.stringify({ voiceURI: defaultVoice.voiceURI }));
-        handleSettingUpdate({ voice: defaultVoice });
+        if(defaultVoice){
+          localStorage.setItem('lastusedvoice', JSON.stringify({ voiceURI: defaultVoice.voiceURI }));
+          handleSettingUpdate({ voice: defaultVoice });
+        }
       } else {
         // console.log("i am in", JSON.parse(localStorage.getItem('lastusedvoice')));
         const lastUsedVoiceURI = JSON.parse(localStorage.getItem('lastusedvoice')).voiceURI;
@@ -176,7 +178,7 @@ const CameraComponent = () => {
           // localStorage.setItem('lastusedcamera', JSON.stringify({ camera: JSON.parse(localStorage.getItem('lastusedcamera')).camera }))
         }
       })
-      .catch(error => console.error('Error enumerating devices:', error));
+      .catch(error => alert(error));
   }, []);
 
   useEffect(() => {
@@ -385,7 +387,7 @@ const CameraComponent = () => {
     // Start or stop the session on spacebar press
     if (event.code === 'Space') {
       event.preventDefault(); // Prevent scrolling when pressing spacebar
-      if(selectedPrompt == "assistant"){
+      if(selectedPrompt === "assistant"){
         !(isSpeaking || listening) ? startListening() : stopSession();
       }else{
         captureAndGenerate()
