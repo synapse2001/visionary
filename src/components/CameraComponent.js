@@ -137,11 +137,11 @@ const CameraComponent = () => {
         setCameraList(cameras);
         if (JSON.parse(localStorage.getItem('lastusedcamera')) === null) {
           setSelectedCamera(cameras.length > 0 ? cameras[0].deviceId : null);
+          localStorage.setItem('lastusedcamera', JSON.stringify({ camera: cameras[0].deviceId }))
         } else {
           setSelectedCamera(JSON.parse(localStorage.getItem('lastusedcamera')).camera)
-          localStorage.setItem('lastusedcamera', JSON.stringify({ camera: JSON.parse(localStorage.getItem('lastusedcamera')).camera }))
+          // localStorage.setItem('lastusedcamera', JSON.stringify({ camera: JSON.parse(localStorage.getItem('lastusedcamera')).camera }))
         }
-        localStorage.setItem('lastusedcamera', JSON.stringify({ camera: cameras[0].deviceId }))
       })
       .catch(error => console.error('Error enumerating devices:', error));
   }, []);
