@@ -6,8 +6,6 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import IconButton from '@mui/material/IconButton';
@@ -16,12 +14,15 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useTheme } from '@mui/material/styles';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import ImagePopup from './ImagePopup';
+import SettingPopup from './SettingPopup';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 const genAI = new GoogleGenerativeAI(process.env.REACT_APP_AI_KEY);
 
 const CameraComponent = () => {
+
   const [selectedCamera, setSelectedCamera] = useState(null);
   const [cameraList, setCameraList] = useState([]);
   const [image, setImage] = useState(null);
@@ -35,18 +36,102 @@ const CameraComponent = () => {
   const webcamRef = useRef(null);
   const [imageList, setImageList] = useState([]);
   const [imageListProp, setImageListProp] = useState([]);
+  const [isSessionBusy, setIsSessionBusy] = useState(false);
+  const [utterance, setUtterance] = useState(null);
+  const [voice, setVoice] = useState(null);
 
-  const silenceThreshold = 2500;
-  const imageLimit = 5;
   const defaultPrompt = "What do you see in this image?, If you see a girl compliment her on looks and smile, If you see a product, specify the brand only if you are sure.";
-  const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+  const loadSettings = () => {
+    const savedSettings = JSON.parse(localStorage.getItem('settings')) || {};
+    console.log(savedSettings);
+    return {
+      temperature: savedSettings.temperature || 0.1,
+      selectedModel: savedSettings.selectedModel || 'gemini-pro-vision',
+      silenceThresholdSeconds: savedSettings.silenceThresholdSeconds || 2.5,
+      voice: voice,
+      rate: savedSettings.rate || 1.0,
+      usetextTospeech: savedSettings.usetextTospeech || false,
+      userecurringSession: savedSettings.userecurringSession || false,
+      imageLimitValue: savedSettings.imageLimitValue || 5,
+    };
+  };
+
+
+  const [settings, setSettings] = useState(loadSettings());
+
+  const{
+    temperature,
+    silenceThresholdSeconds,
+    rate,
+    usetextTospeech,
+    userecurringSession,
+    imageLimitValue,
+  } = settings;
+
+  const handleSettingUpdate = (newSettings) => {
+    // console.log(newSettings);
+    let prevSet = settings;
+    setSettings((prevSettings) => ({
+      ...prevSettings,
+      ...newSettings,
+    }));
+    const updatedSettings = { ...prevSet, ...newSettings };
+    console.log(JSON.stringify(updatedSettings))
+    localStorage.setItem('settings', JSON.stringify(updatedSettings));
+    setVoice(newSettings.voice)
+  };
+
+
+
+  const [generationConfig,setgenerationConfig] = useState({candidateCount: 1,temperature: temperature})
+  const model = genAI.getGenerativeModel({ model: "gemini-pro-vision", generationConfig });
+  const synth = window.speechSynthesis;
+
+  const startListening = () => SpeechRecognition.startListening({ continuous: true, language: 'en-IN' });
+
+  const handleRestartSession = () => {
+    if (userecurringSession && !isSessionBusy) {
+      startListening();
+    }
+  }
+
+  useEffect(() => {
+    if (!isSessionBusy && usetextTospeech) {
+      const u = new SpeechSynthesisUtterance(responseText);
+      
+      setUtterance(u);
+      if(voice === null){
+        const voices = synth.getVoices();
+        console.log(voices);
+        setVoice(voices[2]);}
+      return () => {
+        synth.cancel();
+      };
+    }
+  }, [isSessionBusy, responseText]);
+
+  useEffect(() => {
+    if (usetextTospeech && utterance && responseText && !isSessionBusy) {
+      console.log(voice);
+      utterance.voice = voice;
+      utterance.rate = rate;
+      utterance.onend = () => handleRestartSession();
+      console.log(utterance);
+      synth.speak(utterance);
+    }
+  }, [utterance]);
 
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices()
       .then(devices => {
         const cameras = devices.filter(device => device.kind === 'videoinput');
         setCameraList(cameras);
+        if(JSON.parse(localStorage.getItem('lastusedcamera')) === null){
         setSelectedCamera(cameras.length > 0 ? cameras[0].deviceId : null);
+        }else{
+          setSelectedCamera(JSON.parse(localStorage.getItem('lastusedcamera')).camera)
+        }
+        localStorage.setItem('lastusedcamera', JSON.stringify({camera: cameras[0].deviceId}))
       })
       .catch(error => console.error('Error enumerating devices:', error));
   }, []);
@@ -110,7 +195,7 @@ const CameraComponent = () => {
     const imageBase64 = imageSrc.split(',')[1];
 
     // Use the gemini-pro-vision model
-    
+
     let prompt = selectedPrompt === "default" ? defaultPrompt : customPrompt;
     const imageParts = [
       {
@@ -141,13 +226,14 @@ const CameraComponent = () => {
   };
 
   const multipleCapture = async () => {
-    if(imageList.length >= imageLimit) return;
+    if (imageList.length >= imageLimitValue) return;
     const imageSrc = webcamRef.current.getScreenshot();
     setImageList([...imageList, imageSrc]);
   }
 
   const sendMultipleCapture = async () => {
     setLoading(true);
+    setIsSessionBusy(true);
     const imageParts = imageList.map((img) => ({
       inlineData: {
         data: img.split(',')[1],
@@ -167,10 +253,12 @@ const CameraComponent = () => {
         text += chunkText;
         setResponseText(text);
       }
+      console.log(text)
     } catch (error) {
       console.error('Error sending images to Gemini model:', error);
     } finally {
       setLoading(false);
+      setIsSessionBusy(false);
       // console.log("response text", responseText);
     }
   }
@@ -178,6 +266,7 @@ const CameraComponent = () => {
   const handleCameraChange = (event) => {
     const selectedDeviceId = event.target.value;
     setSelectedCamera(selectedDeviceId);
+    localStorage.setItem('lastusedcamera', JSON.stringify({camera: selectedDeviceId}))
   };
 
   const [showImagePopup, setShowImagePopup] = useState(false);
@@ -191,6 +280,14 @@ const CameraComponent = () => {
     setShowImagePopup(false);
   };
 
+  const [showSettingPopup, setShowSettingPopup] = useState(false);
+
+  const handleSettingPopupOpen = () => {
+    setShowSettingPopup(true);
+  }
+  const handleSettingPopupClose = () => {
+    setShowSettingPopup(false);
+  }
 
   const {
     transcript,
@@ -205,10 +302,10 @@ const CameraComponent = () => {
   useEffect(() => {
     // console.log('Transcript:', transcript);
     // Update the last transcript update time
-    if(listening){
+    if (listening) {
       multipleCapture()
       setLastTranscriptUpdateTime(Date.now());
-    setCustomPrompt(transcript)
+      setCustomPrompt(transcript)
     }
   }, [transcript]);
 
@@ -217,9 +314,9 @@ const CameraComponent = () => {
     const timerId = setInterval(() => {
       const currentTime = Date.now();
       const elapsedTime = currentTime - lastTranscriptUpdateTime;
-      if(lastTranscriptUpdateTime !== 0){
+      if (lastTranscriptUpdateTime !== 0) {
 
-        if (elapsedTime > silenceThreshold && listening) {
+        if (elapsedTime > silenceThresholdSeconds*1000 && listening) {
           SpeechRecognition.stopListening();
           resetTranscript();
           sendMultipleCapture();
@@ -229,20 +326,18 @@ const CameraComponent = () => {
           // console.log('Recording stopped due to inactivity.');
         }
       }
-      }, 500); 
+    }, 500);
     return () => clearInterval(timerId);
-  }, [lastTranscriptUpdateTime,listening]);
+  }, [lastTranscriptUpdateTime, listening]);
 
 
   if (!browserSupportsSpeechRecognition) {
     return <span>Browser doesn't support speech recognition.</span>;
   }
 
-  const startListening = () => SpeechRecognition.startListening({ continuous: true, language: 'en-IN' });
-
   const webcamContainerStyle = {
     mt: 2,
-    boxShadow: listening ? '0 0 10px 2px rgba(255, 0, 0, 0.5)' : 'none', 
+    boxShadow: listening ? '0 0 10px 2px rgba(255, 0, 0, 0.5)' : 'none',
   };
 
   return (
@@ -252,7 +347,7 @@ const CameraComponent = () => {
           <div className='flexrow'>
             <div>
 
-              {(selectedPrompt === "custom" || selectedPrompt === "assistant")&& (
+              {(selectedPrompt === "custom" || selectedPrompt === "assistant") && (
                 <Dialog open={showCustomPromptDialog} onClose={() => setShowCustomPromptDialog(false)}>
                   <DialogTitle>Enter Custom Prompt</DialogTitle>
                   <DialogContent>
@@ -287,20 +382,9 @@ const CameraComponent = () => {
                 />
               </Box>
               <Box m={2}>
-                <Select value={selectedCamera} onChange={handleCameraChange}>
-                  {cameraList.map(camera => (
-                    <MenuItem key={camera.deviceId} value={camera.deviceId}>
-                      {camera.label || `Camera ${cameraList.indexOf(camera) + 1}`}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Box>
-              <Box m={2}>
-                <Select value={selectedPrompt} onChange={handlePromptChange}>
-                  <MenuItem value="default">Default Prompt</MenuItem>
-                  <MenuItem value="custom">Custom Prompt</MenuItem>
-                  <MenuItem value="assistant">Assistant</MenuItem>
-                </Select>
+                <IconButton onClick={handleSettingPopupOpen} color="primary">
+                  <SettingsIcon />
+                </IconButton>
               </Box>
             </div>
             <div className='response'>
@@ -352,12 +436,12 @@ const CameraComponent = () => {
                           </Typography>
                           <Typography variant="body1" className="response-text" color="secondary" mt={1} mb={2} border={1} style={{ padding: '10px', whiteSpace: 'pre-wrap' }} borderRadius={1.5} >{(responseText)} </Typography>
                           <Button variant="contained" color="primary" onClick={handleImagePopupOpen}>
-                            Captures 
+                            Captures
                           </Button>
                         </>
                       ) : (
                         <Typography variant="body1" color="textSecondary">
-                          Click 40px above the button to get the response xd.
+                          Click 40px above to get the response xd.
                         </Typography>
                       )}
                     </CardContent>
@@ -367,7 +451,18 @@ const CameraComponent = () => {
 
             </div>
           </div>
-          <ImagePopup open={showImagePopup} handleClose={handleImagePopupClose} image={image} imagelistprop = {imageListProp} response={responseText} />
+          <ImagePopup open={showImagePopup} handleClose={handleImagePopupClose} image={image} imagelistprop={imageListProp} response={responseText} />
+          <SettingPopup
+            open={showSettingPopup}
+            handleClose={handleSettingPopupClose}
+            selectedCamera={selectedCamera}
+            handleCameraChange={handleCameraChange}
+            selectedPrompt={selectedPrompt}
+            handlePromptChange={handlePromptChange}
+            cameraList={cameraList}
+            settings = {settings}
+            handleSettingUpdate = {handleSettingUpdate}
+          />
         </CardContent>
       </Card>
     </Box>
@@ -375,3 +470,5 @@ const CameraComponent = () => {
 };
 
 export default CameraComponent;
+
+
