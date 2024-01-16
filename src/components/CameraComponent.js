@@ -303,9 +303,12 @@ const CameraComponent = () => {
       // console.log(text)
     } catch (error) {
       console.error('Error sending images to Gemini model:', error);
+      setResponseText(String(error))
     } finally {
       setLoading(false);
       setIsSessionBusy(false);
+      setImageListProp(imageList)
+      setImageList([]);
       // console.log("response text", responseText);
     }
   }
@@ -385,7 +388,7 @@ const CameraComponent = () => {
 
   const handleKeyDown = (event) => {
     // Start or stop the session on spacebar press
-    if (event.code === 'Space') {
+    if (event.code === 'Space' && event.ctrlKey) {
       event.preventDefault(); // Prevent scrolling when pressing spacebar
       if(selectedPrompt === "assistant"){
         !(isSpeaking || listening) ? startListening() : stopSession();
