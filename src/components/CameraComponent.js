@@ -467,7 +467,7 @@ const CameraComponent = () => {
                 {selectedPrompt === "assistant" ? (
                     <Button
                     variant="contained"
-                    color="primary"
+                    color= {isSpeaking || listening ? "error" : "primary"}
                     onClick={!(isSpeaking || listening)  ? startListening : stopSession}
                     disabled={loading || updatingCamera}
                     className="start-session-button"
