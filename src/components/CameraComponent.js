@@ -29,7 +29,7 @@ const CameraComponent = () => {
   const [loading, setLoading] = useState(false);
   const [updatingCamera, setUpdatingCamera] = useState(false);
   const [responseText, setResponseText] = useState('');
-  const [selectedPrompt, setSelectedPrompt] = useState("assistant");
+  const [selectedPrompt, setSelectedPrompt] = useState(JSON.parse(localStorage.getItem('lastusedprompt')).prompt ? JSON.parse(localStorage.getItem('lastusedprompt')).prompt: null);
   const [customPrompt, setCustomPrompt] = useState("");
   const [showCustomPromptDialog, setShowCustomPromptDialog] = useState(false);
   const theme = useTheme();
@@ -59,7 +59,7 @@ const CameraComponent = () => {
 
   const [settings, setSettings] = useState(loadSettings());
 
-  const{
+  const {
     temperature,
     silenceThresholdSeconds,
     rate,
@@ -83,7 +83,7 @@ const CameraComponent = () => {
 
 
 
-  const [generationConfig,setgenerationConfig] = useState({candidateCount: 1,temperature: temperature})
+  const [generationConfig, setgenerationConfig] = useState({ candidateCount: 1, temperature: temperature })
   const model = genAI.getGenerativeModel({ model: "gemini-pro-vision", generationConfig });
   const synth = window.speechSynthesis;
 
@@ -98,12 +98,13 @@ const CameraComponent = () => {
   useEffect(() => {
     if (!isSessionBusy && usetextTospeech) {
       const u = new SpeechSynthesisUtterance(responseText);
-      
+
       setUtterance(u);
-      if(voice === null){
+      if (voice === null) {
         const voices = synth.getVoices();
         console.log(voices);
-        setVoice(voices[2]);}
+        setVoice(voices[2]);
+      }
       return () => {
         synth.cancel();
       };
@@ -126,12 +127,13 @@ const CameraComponent = () => {
       .then(devices => {
         const cameras = devices.filter(device => device.kind === 'videoinput');
         setCameraList(cameras);
-        if(JSON.parse(localStorage.getItem('lastusedcamera')) === null){
-        setSelectedCamera(cameras.length > 0 ? cameras[0].deviceId : null);
-        }else{
+        if (JSON.parse(localStorage.getItem('lastusedcamera')) === null) {
+          setSelectedCamera(cameras.length > 0 ? cameras[0].deviceId : null);
+        } else {
           setSelectedCamera(JSON.parse(localStorage.getItem('lastusedcamera')).camera)
+          localStorage.setItem('lastusedcamera', JSON.stringify({ camera: selectedDeviceId }))
         }
-        localStorage.setItem('lastusedcamera', JSON.stringify({camera: cameras[0].deviceId}))
+        localStorage.setItem('lastusedcamera', JSON.stringify({ camera: cameras[0].deviceId }))
       })
       .catch(error => console.error('Error enumerating devices:', error));
   }, []);
@@ -175,6 +177,7 @@ const CameraComponent = () => {
     if (selectedPromptValue === "custom") {
       setShowCustomPromptDialog(true);
     }
+    localStorage.setItem('lastusedprompt', JSON.stringify({ prompt: selectedPromptValue }))
   };
 
   const handleCustomPromptChange = (event) => {
@@ -266,7 +269,7 @@ const CameraComponent = () => {
   const handleCameraChange = (event) => {
     const selectedDeviceId = event.target.value;
     setSelectedCamera(selectedDeviceId);
-    localStorage.setItem('lastusedcamera', JSON.stringify({camera: selectedDeviceId}))
+    localStorage.setItem('lastusedcamera', JSON.stringify({ camera: selectedDeviceId }))
   };
 
   const [showImagePopup, setShowImagePopup] = useState(false);
@@ -316,7 +319,7 @@ const CameraComponent = () => {
       const elapsedTime = currentTime - lastTranscriptUpdateTime;
       if (lastTranscriptUpdateTime !== 0) {
 
-        if (elapsedTime > silenceThresholdSeconds*1000 && listening) {
+        if (elapsedTime > silenceThresholdSeconds * 1000 && listening) {
           SpeechRecognition.stopListening();
           resetTranscript();
           sendMultipleCapture();
@@ -460,8 +463,8 @@ const CameraComponent = () => {
             selectedPrompt={selectedPrompt}
             handlePromptChange={handlePromptChange}
             cameraList={cameraList}
-            settings = {settings}
-            handleSettingUpdate = {handleSettingUpdate}
+            settings={settings}
+            handleSettingUpdate={handleSettingUpdate}
           />
         </CardContent>
       </Card>
