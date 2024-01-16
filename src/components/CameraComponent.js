@@ -47,6 +47,7 @@ const CameraComponent = () => {
   const [isSessionBusy, setIsSessionBusy] = useState(false);
   const [utterance, setUtterance] = useState(null);
   const [voice, setVoice] = useState(null);
+  const[isSpeaking, setIsSpeaking] = useState(false);
 
   const defaultPrompt = "What do you see in this image?, If you see a girl compliment her on looks and smile, If you see a product, specify the brand only if you are sure.";
   const loadSettings = () => {
@@ -128,7 +129,8 @@ const CameraComponent = () => {
   
 
   const handleRestartSession = () => {
-    if (userecurringSession && !isSessionBusy) {
+    setIsSpeaking(false);
+    if (userecurringSession && !isSessionBusy && selectedPrompt === "assistant") {
       startListening();
     }
   }
@@ -154,8 +156,9 @@ const CameraComponent = () => {
       // console.log(voice);
       utterance.voice = voice;
       utterance.rate = rate;
+      utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => handleRestartSession();
-      // console.log(utterance);
+      console.log(utterance);
       synth.speak(utterance);
     }
   }, [utterance]);
@@ -372,6 +375,32 @@ const CameraComponent = () => {
     return () => clearInterval(timerId);
   }, [lastTranscriptUpdateTime, listening]);
 
+  const stopSession = () => {
+    synth.cancel()
+    SpeechRecognition.abortListening()
+    setIsSpeaking(false);
+  }
+
+  const handleKeyDown = (event) => {
+    // Start or stop the session on spacebar press
+    if (event.code === 'Space') {
+      event.preventDefault(); // Prevent scrolling when pressing spacebar
+      if(selectedPrompt == "assistant"){
+        !(isSpeaking || listening) ? startListening() : stopSession();
+      }else{
+        captureAndGenerate()
+      }
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isSpeaking, listening,selectedPrompt]);
+
 
   if (!browserSupportsSpeechRecognition) {
     return <span>Browser doesn't support speech recognition.</span>;
@@ -381,6 +410,8 @@ const CameraComponent = () => {
     mt: 2,
     boxShadow: listening ? '0 0 10px 2px rgba(255, 0, 0, 0.5)' : 'none',
   };
+
+
 
   return (
     <Box className="card-container" mt={2}>
@@ -432,14 +463,14 @@ const CameraComponent = () => {
             <div className='response'>
               <Box m={2} >
                 {selectedPrompt === "assistant" ? (
-                  <Button
+                    <Button
                     variant="contained"
                     color="primary"
-                    onClick={startListening}
-                    disabled={loading || updatingCamera || listening}
+                    onClick={!(isSpeaking || listening)  ? startListening : stopSession}
+                    disabled={loading || updatingCamera}
                     className="start-session-button"
                   >
-                    {updatingCamera ? 'Updating Camera...' : 'Start Session'}
+                    {updatingCamera ? 'Updating Camera...' : !(isSpeaking || listening) ? 'Start Session' : 'Stop Session'}
                   </Button>
                 ) : (
                   <Button
@@ -483,7 +514,7 @@ const CameraComponent = () => {
                         </>
                       ) : (
                         <Typography variant="body1" color="textSecondary">
-                          Click 40px above to get the response xd.
+                          Click 40px above to get the response xd. or press spacebar.
                         </Typography>
                       )}
                     </CardContent>

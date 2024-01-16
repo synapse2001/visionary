@@ -40,15 +40,15 @@ const SettingPopup = ({
   
 
   useEffect(() => {
-    const updateVoices = () => {
+    // const updateVoices = () => {
       const temp = synth.getVoices(); 
       setVoiceList(temp);
       // handleSettingUpdate({ voice: temp[2]}) // You might want to set the default voice based on your requirements
-    };
-    updateVoices();
+    // };
+    // updateVoices();
   
-    synth.onvoiceschanged = updateVoices;
-  }, [usetextTospeech]);
+    // synth.onvoiceschanged = updateVoices;
+  }, []);
   
   const handleResetToDefault = () => {
     // Define your default settings or retrieve them from a source
