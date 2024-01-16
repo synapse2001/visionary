@@ -166,6 +166,14 @@ const CameraComponent = () => {
   }, [utterance]);
 
   useEffect(() => {
+    if(isSpeaking){
+      if(loading){
+        synth.cancel()
+    }
+  }
+  },[loading]);
+
+  useEffect(() => {
     navigator.mediaDevices.enumerateDevices()
       .then(devices => {
         const cameras = devices.filter(device => device.kind === 'videoinput');
@@ -234,7 +242,6 @@ const CameraComponent = () => {
 
   const captureAndGenerate = async () => {
     setLoading(true);
-
     const imageSrc = webcamRef.current.getScreenshot();
     setImage(imageSrc);
 
