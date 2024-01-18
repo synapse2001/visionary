@@ -59,8 +59,8 @@ const CameraComponent = () => {
       silenceThresholdSeconds: savedSettings.silenceThresholdSeconds || 2.5,
       voice: voice,
       rate: savedSettings.rate || 1.0,
-      usetextTospeech: savedSettings.usetextTospeech || false,
-      userecurringSession: savedSettings.userecurringSession || false,
+      usetextTospeech: savedSettings.usetextTospeech || true,
+      userecurringSession: savedSettings.userecurringSession || true,
       imageLimitValue: savedSettings.imageLimitValue || 5,
     };
   };
@@ -391,6 +391,7 @@ const CameraComponent = () => {
     synth.cancel()
     SpeechRecognition.abortListening()
     setIsSpeaking(false);
+    setImageList([]);
   }
 
   const handleKeyDown = (event) => {
@@ -434,6 +435,7 @@ const CameraComponent = () => {
 
               {(selectedPrompt === "custom" || selectedPrompt === "assistant") && (
                 <Dialog open={showCustomPromptDialog} onClose={() => setShowCustomPromptDialog(false)}>
+                  <div style={{ backgroundColor: theme.palette.accent.main }}>
                   <DialogTitle>Enter Custom Prompt</DialogTitle>
                   <DialogContent>
                     <TextField
@@ -445,7 +447,7 @@ const CameraComponent = () => {
                       fullWidth
                       value={customPrompt}
                       onChange={handleCustomPromptChange}
-                    />
+                      />
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={() => setShowCustomPromptDialog(false)} color="primary">
@@ -455,6 +457,7 @@ const CameraComponent = () => {
                       Confirm
                     </Button>
                   </DialogActions>
+                      </div>
                 </Dialog>
               )}
               <Box className="webcam-container" mt={2} style={webcamContainerStyle} >
@@ -525,8 +528,16 @@ const CameraComponent = () => {
                           </Button>
                         </>
                       ) : (
-                        <Typography variant="body1" color="textSecondary">
-                          Click 40px above to get the response xd. or press spacebar.
+                        <Typography variant="body1" color="textSecondary" gutterBottom>
+                          ❤️‍🔥Click 40px above to get the response xd. or press ctrl +spacebar.
+                          <Typography variant="body1" color="textSecondary" mt={1} gutterBottom>
+                          {/* <br/> */}
+                          🫳Press spacebaar to open settings.
+                        </Typography>
+                          {/* <br/> */}
+                        <Typography variant="body1" color="textSecondary" gutterBottom>
+                        📎Tinker with settings to know what they do.
+                        </Typography>
                         </Typography>
                       )}
                     </CardContent>
