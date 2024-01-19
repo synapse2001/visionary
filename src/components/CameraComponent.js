@@ -52,18 +52,20 @@ const CameraComponent = () => {
   const defaultPrompt = "What do you see in this image?, If you see a girl compliment her on looks and smile, If you see a product, specify the brand only if you are sure.";
   const loadSettings = () => {
     const savedSettings = JSON.parse(localStorage.getItem('settings')) || {};
-    // console.log(savedSettings.temperature);
+    // console.log("saved",savedSettings);
     return {
       temperature: savedSettings.temperature || 0.1,
       selectedModel: savedSettings.selectedModel || 'gemini-pro-vision',
       silenceThresholdSeconds: savedSettings.silenceThresholdSeconds || 2.5,
       voice: voice,
       rate: savedSettings.rate || 1.0,
-      usetextTospeech: savedSettings.usetextTospeech || true,
-      userecurringSession: savedSettings.userecurringSession || true,
+      usetextTospeech: savedSettings.usetextTospeech || false,
+      userecurringSession: savedSettings.userecurringSession || false,
       imageLimitValue: savedSettings.imageLimitValue || 5,
     };
   };
+
+
 
 
   const [settings, setSettings] = useState(loadSettings());
@@ -113,11 +115,12 @@ const CameraComponent = () => {
         setVoice(defaultVoice);
         // console.log("whynotworking",defaultVoice.voiceURI);
         if(defaultVoice){
+          // console.log("i am in 1");
           localStorage.setItem('lastusedvoice', JSON.stringify({ voiceURI: defaultVoice.voiceURI }));
           handleSettingUpdate({ voice: defaultVoice });
         }
       } else {
-        // console.log("i am in", JSON.parse(localStorage.getItem('lastusedvoice')));
+        // console.log("i am in 2");
         const lastUsedVoiceURI = JSON.parse(localStorage.getItem('lastusedvoice')).voiceURI;
         const matchingVoice = voices.find(voice => voice.voiceURI === lastUsedVoiceURI);
         setVoice(matchingVoice);
@@ -160,7 +163,7 @@ const CameraComponent = () => {
       utterance.rate = rate;
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => handleRestartSession();
-      console.log(utterance);
+      // console.log(utterance);
       synth.speak(utterance);
     }
   }, [utterance]);
