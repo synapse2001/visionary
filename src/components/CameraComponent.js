@@ -52,15 +52,21 @@ const CameraComponent = () => {
   const defaultPrompt = "What do you see in this image?, If you see a girl compliment her on looks and smile, If you see a product, specify the brand only if you are sure.";
   const loadSettings = () => {
     const savedSettings = JSON.parse(localStorage.getItem('settings')) || {};
-    // console.log("saved",savedSettings);
+    // console.log("saved",savedSettings.usetextTospeech);
+    if (savedSettings.usetextTospeech === undefined) {
+      savedSettings.usetextTospeech = true;
+    }
+    if (savedSettings.userecurringSession === undefined) {
+      savedSettings.userecurringSession = true;
+    }
     return {
       temperature: savedSettings.temperature || 0.1,
       selectedModel: savedSettings.selectedModel || 'gemini-pro-vision',
       silenceThresholdSeconds: savedSettings.silenceThresholdSeconds || 2.5,
       voice: voice,
       rate: savedSettings.rate || 1.0,
-      usetextTospeech: savedSettings.usetextTospeech || false,
-      userecurringSession: savedSettings.userecurringSession || false,
+      usetextTospeech: savedSettings.usetextTospeech && true,
+      userecurringSession: savedSettings.userecurringSession && true,
       imageLimitValue: savedSettings.imageLimitValue || 5,
     };
   };
@@ -472,11 +478,16 @@ const CameraComponent = () => {
                   ref={webcamRef}
                 />
               </Box>
+              <div style={{display:'flex',flexDirection:'row'}}>
               <Box m={2}>
                 <IconButton onClick={handleSettingPopupOpen} color="primary">
                   <SettingsIcon />
                 </IconButton>
               </Box>
+              <Typography variant="body1" color="primary" mt={3}>
+                        An open source project by Gagan Agarwal <a href="https://github.com/synapse2001/visionary" target="_blank" style={{color:"#ff6961"}} > [Source Code] </a>
+                        </Typography>
+              </div>
             </div>
             <div className='response'>
               <Box m={2} >
