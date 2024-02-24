@@ -486,7 +486,7 @@ const CameraComponent = () => {
               </Box>
               <Typography variant="body1" color="primary" mt={3}>
                         An open source project by Gagan Agarwal <a href="https://github.com/synapse2001/visionary" target="_blank" 
-                        // style={{color:"#ff6961"}} 
+                        style={{color:"#ff6961"}} 
                         > [Source Code] </a>
                         </Typography>
               </div>
