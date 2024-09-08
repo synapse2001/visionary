@@ -61,7 +61,7 @@ const CameraComponent = () => {
     }
     return {
       temperature: savedSettings.temperature || 0.1,
-      selectedModel: savedSettings.selectedModel || 'gemini-pro-vision',
+      selectedModel: savedSettings.selectedModel || 'gemini-1.5-flash',
       silenceThresholdSeconds: savedSettings.silenceThresholdSeconds || 2.5,
       voice: voice,
       rate: savedSettings.rate || 1.0,
@@ -106,7 +106,7 @@ const CameraComponent = () => {
   
 
   const [generationConfig, setgenerationConfig] = useState({ candidateCount: 1, temperature: temperature })
-  const model = genAI.getGenerativeModel({ model: "gemini-pro-vision", generationConfig });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig });
   const synth = window.speechSynthesis;
 
   const startListening = () => SpeechRecognition.startListening({ continuous: true, language: 'en-IN' });
@@ -257,7 +257,7 @@ const CameraComponent = () => {
     // Convert the image to a base64 string for the API call
     const imageBase64 = imageSrc.split(',')[1];
 
-    // Use the gemini-pro-vision model
+    // Use the gemini-1.5-flash model
 
     let prompt = selectedPrompt === "default" ? defaultPrompt : customPrompt;
     const imageParts = [
